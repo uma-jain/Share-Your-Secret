@@ -39,7 +39,7 @@ const userschema= new mongoose.Schema({
     
 });
  //encryption
- var secret = "Thisisourlittlesecret";
+
  userschema.plugin(encrypt, { secret:process.env.SECRET,encryptedFields: ['password'] });
 //user is table:collections
 const User= mongoose.model("User",userschema); // in singular formm collection;
