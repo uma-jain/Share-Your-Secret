@@ -1,4 +1,5 @@
 //jshint esver
+require('dotenv').config(); 
 const express=require("express");
 const bodyparser=require("body-parser");
 const ejs=require("ejs");
@@ -8,12 +9,13 @@ const encrypt=require("mongoose-encryption");
  
 const app=express();
 app.use(express.static("public"));
+console.log(process.env.API_KEY);
 
 
 app.set('view engine', 'ejs');
 app.use(bodyparser.urlencoded({
     extended:true
-}));
+}));   
 
 app.get("/",function(req,res){
 res.render("home");
@@ -34,11 +36,11 @@ mongoose.connect('mongodb://localhost:27017/userdb', {useNewUrlParser: true, use
 const userschema= new mongoose.Schema({
    email:String,
    password:String
-   
+    
 });
  //encryption
  var secret = "Thisisourlittlesecret";
- userschema.plugin(encrypt, { secret: secret,encryptedFields: ['password'] });
+ userschema.plugin(encrypt, { secret:process.env.SECRET,encryptedFields: ['password'] });
 //user is table:collections
 const User= mongoose.model("User",userschema); // in singular formm collection;
 
