@@ -4,12 +4,14 @@ const express=require("express");
 const bodyparser=require("body-parser");
 const ejs=require("ejs");
 const mongoose=require("mongoose");
-const encrypt=require("mongoose-encryption");
+//const md5=require("md5");
+const bcrypt=require("bcrypt");
+const saltround=10;
 
  
 const app=express();
 app.use(express.static("public"));
-console.log(process.env.API_KEY);
+
 
 
 app.set('view engine', 'ejs');
@@ -40,26 +42,29 @@ const userschema= new mongoose.Schema({
 });
  //encryption
 
- userschema.plugin(encrypt, { secret:process.env.SECRET,encryptedFields: ['password'] });
 //user is table:collections
 const User= mongoose.model("User",userschema); // in singular formm collection;
 
 
 app.post("/register",function(req,res){
 
-   const newuser=new User({
-       email:req.body.email,
-       password:req.body.password
-   })
-   
-  newuser.save(function(err){
-    if(err)
-    {console.log(err);}
-    else
-    {   console.log("registered");
-        res.render("login");
-    }
-  });
+    bcrypt.hash(req.body.password ,saltround, function(err, hash) {
+        // Store hash in your password DB.
+        const newuser=new User({
+            email:req.body.email,
+            password:hash
+        })
+        
+       newuser.save(function(err){
+         if(err)
+         {console.log(err);}
+         else
+         {   console.log("registered");
+             res.render("login");
+         }
+       });
+    });
+  
    
 });
 
@@ -70,15 +75,18 @@ app.post("/login",function(req,res){
       
        res.render("register");
     }
-    else{
-      
-           if(user.password === req.body.password){
-               console.log("found");
-                res.render("secrets");
+    else{    
+        bcrypt.compare(req.body.password,user.password, function(err, result) {
+            // result == true
+            if(result === true){
+            console.log("found");
+            res.render("secrets");}
+            else{
+                console.log("incorrect password");
             }
-     
-       }
-        
+       
+        });
+    }    
     });
  });
 
